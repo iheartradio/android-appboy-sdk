@@ -3,6 +3,7 @@ package com.appboy.ui.support;
 import com.appboy.Constants;
 import com.appboy.models.IInAppMessageHtml;
 import com.appboy.support.AppboyLogger;
+import com.appboy.support.StringUtils;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
