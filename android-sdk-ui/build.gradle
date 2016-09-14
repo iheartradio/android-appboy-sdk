@@ -1,12 +1,12 @@
-apply plugin: 'android-library'
+apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
-version = '1.11.0.1'
+version = '1.15.0'
 
 version = version + '-ihr'
 
 dependencies {
-    compile 'com.appboy:closed-lib:0.0.3'
+    compile 'com.appboy:closed-lib:1.15.0'
 
     // Note: This requires the Android Support Repository to be installed, please see the README.md. The jar is
     // also available in the libs/ directory to help support people who are using older build systems.
@@ -17,13 +17,14 @@ dependencies {
 }
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion '23.0.1'
+  compileSdkVersion 23
+  buildToolsVersion '24.0.0'
 
-    defaultConfig {
-        minSdkVersion 9
-        targetSdkVersion 23
-    }
+  defaultConfig {
+    minSdkVersion 9
+    targetSdkVersion 23
+    consumerProguardFiles 'appboy-proguard-rules.pro'
+  }
 
   sourceSets {
     main.setRoot(".")
