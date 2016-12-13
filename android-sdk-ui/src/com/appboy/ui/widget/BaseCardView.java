@@ -15,10 +15,9 @@ import android.widget.ViewSwitcher;
 
 import com.appboy.Appboy;
 import com.appboy.Constants;
+import com.appboy.configuration.AppboyConfigurationProvider;
 import com.appboy.models.cards.Card;
 import com.appboy.support.AppboyLogger;
-import com.appboy.support.PackageUtils;
-import com.appboy.support.StringUtils;
 import com.appboy.ui.R;
 import com.appboy.ui.actions.IAction;
 import com.appboy.ui.feed.AppboyFeedManager;
@@ -36,7 +35,6 @@ public abstract class BaseCardView<T extends Card> extends RelativeLayout implem
   private static final String TAG = String.format("%s.%s", Constants.APPBOY_LOG_TAG_PREFIX, BaseCardView.class.getName());
   private static Boolean unreadCardVisualIndicatorOn;
   private static final float SQUARE_ASPECT_RATIO = 1f;
-  private static final String COM_APPBOY_NEWSFEED_UNREAD_VISUAL_INDICATOR_ON =  "com_appboy_newsfeed_unread_visual_indicator_on";
   protected final Context mContext;
   protected T mCard;
   protected ImageSwitcher mImageSwitcher;
@@ -68,13 +66,8 @@ public abstract class BaseCardView<T extends Card> extends RelativeLayout implem
 
     // Read the setting from the appboy.xml if we don't already have a value.
     if (unreadCardVisualIndicatorOn == null) {
-      int resId = mContext.getResources().getIdentifier(COM_APPBOY_NEWSFEED_UNREAD_VISUAL_INDICATOR_ON, "bool", PackageUtils.getResourcePackageName(context));
-      if (resId != 0) {
-        unreadCardVisualIndicatorOn = context.getResources().getBoolean(resId);
-      } else {
-        // If the xml setting isn't present, default to true.
-        unreadCardVisualIndicatorOn = true;
-      }
+      AppboyConfigurationProvider configurationProvider = new AppboyConfigurationProvider(context);
+      unreadCardVisualIndicatorOn = configurationProvider.getIsNewsfeedVisualIndicatorOn();
     }
 
     // If the setting is false, then hide the indicator.
@@ -100,6 +93,7 @@ public abstract class BaseCardView<T extends Card> extends RelativeLayout implem
   private void setCardViewedIndicator() {
     if (getCard() != null) {
       if (mImageSwitcher != null) {
+        AppboyLogger.d(TAG, "Setting the read/unread indicator for the card.");
         int resourceId;
         if (getCard().isRead()) {
           resourceId = R.drawable.icon_read;
@@ -109,8 +103,6 @@ public abstract class BaseCardView<T extends Card> extends RelativeLayout implem
         mImageSwitcher.setImageResource(resourceId);
         // Used to identify the current Drawable in the imageSwitcher
         mImageSwitcher.setTag(String.valueOf(resourceId));
-      } else {
-        AppboyLogger.d(TAG, "The imageSwitcher for the read/unread feature is null. Did you include it in your xml?");
       }
     } else {
       AppboyLogger.d(TAG, "The card is null.");
@@ -134,11 +126,11 @@ public abstract class BaseCardView<T extends Card> extends RelativeLayout implem
   }
 
   void setOptionalTextView(TextView view, String value) {
-    if (value != null && !value.trim().equals(StringUtils.EMPTY_STRING)) {
+    if (value != null && !value.trim().equals("")) {
       view.setText(value);
       view.setVisibility(VISIBLE);
     } else {
-      view.setText(StringUtils.EMPTY_STRING);
+      view.setText("");
       view.setVisibility(GONE);
     }
   }
