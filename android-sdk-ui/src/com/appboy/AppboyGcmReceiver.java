@@ -9,11 +9,10 @@ import android.os.Bundle;
 import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
-import com.appboy.configuration.XmlAppConfigurationProvider;
+import com.appboy.configuration.AppboyConfigurationProvider;
 import com.appboy.push.AppboyNotificationActionUtils;
 import com.appboy.push.AppboyNotificationUtils;
 import com.appboy.support.AppboyLogger;
-import com.iheartradio.appboy.AppboyDependencies;
 
 public final class AppboyGcmReceiver extends BroadcastReceiver {
   private static final String TAG = String.format("%s.%s", Constants.APPBOY_LOG_TAG_PREFIX, AppboyGcmReceiver.class.getName());
@@ -30,16 +29,20 @@ public final class AppboyGcmReceiver extends BroadcastReceiver {
   @Override
   public void onReceive(Context context, Intent intent) {
     AppboyLogger.i(TAG, String.format("Received broadcast message. Message: %s", intent.toString()));
+
     String action = intent.getAction();
 
-    boolean isPush = GCM_RECEIVE_INTENT_ACTION.equals(action) && AppboyNotificationUtils.isAppboyPushMessage(intent);
+//    boolean isPush = GCM_RECEIVE_INTENT_ACTION.equals(action) && AppboyNotificationUtils.isAppboyPushMessage(intent);
+//    if (isPush && AppboyDependencies.ihr.isOptedOut()) {
+//      AppboyDependencies.listener.onPushSquelched();
+//    } else if (GCM_REGISTRATION_INTENT_ACTION.equals(action)) {
+//      handleRegistrationEventIfEnabled(new AppboyConfigurationProvider(context), context, intent);
+//    } else if (isPush) {
+//      new HandleAppboyGcmMessageTask(context, intent);
+//    } else
 
-    if (isPush && AppboyDependencies.ihr.isOptedOut()) {
-        AppboyDependencies.listener.onPushSquelched();
-    } else if (GCM_REGISTRATION_INTENT_ACTION.equals(action)) {
-        handleRegistrationEventIfEnabled(new XmlAppConfigurationProvider(context), context, intent);
-    } else if (isPush) {
-        new HandleAppboyGcmMessageTask(context, intent);
+    if (GCM_REGISTRATION_INTENT_ACTION.equals(action)) {
+      handleRegistrationEventIfEnabled(new AppboyConfigurationProvider(context), context, intent);
     } else if (GCM_RECEIVE_INTENT_ACTION.equals(action)) {
       handleAppboyGcmReceiveIntent(context, intent);
     } else if (Constants.APPBOY_CANCEL_NOTIFICATION_ACTION.equals(action)) {
@@ -49,7 +52,7 @@ public final class AppboyGcmReceiver extends BroadcastReceiver {
     } else if (Constants.APPBOY_PUSH_CLICKED_ACTION.equals(action)) {
       AppboyNotificationUtils.handleNotificationOpened(context, intent);
     } else {
-      AppboyLogger.w(TAG, String.format("The GCM receiver received a message not sent from Appboy. Ignoring the message."));
+      AppboyLogger.w(TAG, "The GCM receiver received a message not sent from Appboy. Ignoring the message.");
     }
   }
 
@@ -113,7 +116,7 @@ public final class AppboyGcmReceiver extends BroadcastReceiver {
       return false;
     } else {
       Bundle gcmExtras = intent.getExtras();
-      AppboyLogger.d(TAG, String.format("Push message payload received: %s", gcmExtras));
+      AppboyLogger.i(TAG, String.format("Push message payload received: %s", gcmExtras));
 
       // Parsing the Appboy data extras (data push).
       // We convert the JSON in the extras key into a Bundle.
@@ -121,9 +124,10 @@ public final class AppboyGcmReceiver extends BroadcastReceiver {
       gcmExtras.putBundle(Constants.APPBOY_PUSH_EXTRAS_KEY, appboyExtras);
 
       if (AppboyNotificationUtils.isNotificationMessage(intent)) {
+        AppboyLogger.d(TAG, "Received notification push");
         int notificationId = AppboyNotificationUtils.getNotificationId(gcmExtras);
         gcmExtras.putInt(Constants.APPBOY_PUSH_NOTIFICATION_ID, notificationId);
-        XmlAppConfigurationProvider appConfigurationProvider = new XmlAppConfigurationProvider(context);
+        AppboyConfigurationProvider appConfigurationProvider = new AppboyConfigurationProvider(context);
 
         IAppboyNotificationFactory appboyNotificationFactory = AppboyNotificationUtils.getActiveNotificationFactory();
         Notification notification = appboyNotificationFactory.createNotification(appConfigurationProvider, context, gcmExtras, appboyExtras);
@@ -147,6 +151,7 @@ public final class AppboyGcmReceiver extends BroadcastReceiver {
 
         return true;
       } else {
+        AppboyLogger.d(TAG, "Received data push");
         AppboyNotificationUtils.sendPushMessageReceivedBroadcast(context, gcmExtras);
         return false;
       }
@@ -184,7 +189,7 @@ public final class AppboyGcmReceiver extends BroadcastReceiver {
     }
   }
 
-  boolean handleRegistrationEventIfEnabled(XmlAppConfigurationProvider appConfigurationProvider, Context context, Intent intent) {
+  boolean handleRegistrationEventIfEnabled(AppboyConfigurationProvider appConfigurationProvider, Context context, Intent intent) {
     // Only handle GCM registration events if GCM registration handling is turned on in the
     // configuration file.
     if (appConfigurationProvider.isGcmMessagingRegistrationEnabled()) {
