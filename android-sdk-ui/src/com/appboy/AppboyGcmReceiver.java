@@ -30,16 +30,16 @@ public final class AppboyGcmReceiver extends BroadcastReceiver {
   @Override
   public void onReceive(Context context, Intent intent) {
     AppboyLogger.i(TAG, String.format("Received broadcast message. Message: %s", intent.toString()));
+
     String action = intent.getAction();
 
     boolean isPush = GCM_RECEIVE_INTENT_ACTION.equals(action) && AppboyNotificationUtils.isAppboyPushMessage(intent);
-
     if (isPush && AppboyDependencies.ihr.isOptedOut()) {
-        AppboyDependencies.listener.onPushSquelched();
+      AppboyDependencies.listener.onPushSquelched();
     } else if (GCM_REGISTRATION_INTENT_ACTION.equals(action)) {
-        handleRegistrationEventIfEnabled(new XmlAppConfigurationProvider(context), context, intent);
+      handleRegistrationEventIfEnabled(new AppboyConfigurationProvider(context), context, intent);
     } else if (isPush) {
-        new HandleAppboyGcmMessageTask(context, intent);
+      new HandleAppboyGcmMessageTask(context, intent);
     } else if (GCM_RECEIVE_INTENT_ACTION.equals(action)) {
       handleAppboyGcmReceiveIntent(context, intent);
     } else if (Constants.APPBOY_CANCEL_NOTIFICATION_ACTION.equals(action)) {

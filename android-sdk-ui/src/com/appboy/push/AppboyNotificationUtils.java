@@ -68,7 +68,7 @@ public class AppboyNotificationUtils {
    * Handles a push notification click.  Called by GCM/ADM receiver when an
    * Appboy push notification click intent is received.
    * <p/>
-   * See {@link #sendNotificationOpenedBroadcast}
+   * See {@link #logNotificationOpened} and {@link #sendNotificationOpenedBroadcast}
    *
    * @param context
    * @param intent the internal notification clicked intent constructed in
@@ -76,6 +76,7 @@ public class AppboyNotificationUtils {
    */
   public static void handleNotificationOpened(Context context, Intent intent) {
     try {
+      logNotificationOpened(context, intent);
       sendNotificationOpenedBroadcast(context, intent);
       AppboyConfigurationProvider appConfigurationProvider = new AppboyConfigurationProvider(context);
       if (appConfigurationProvider.getHandlePushDeepLinksAutomatically()) {
@@ -789,4 +790,14 @@ public class AppboyNotificationUtils {
     context.sendBroadcast(pushOpenedIntent);
   }
 
+  /**
+   * Logs a push notification open.
+   *
+   * @param context
+   * @param intent  the internal notification clicked intent constructed in
+   *                {@link #setContentIntentIfPresent}
+   */
+  private static void logNotificationOpened(Context context, Intent intent) {
+    Appboy.getInstance(context).logPushNotificationOpened(intent);
+  }
 }
