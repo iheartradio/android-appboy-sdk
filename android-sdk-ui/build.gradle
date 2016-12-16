@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
-version = '1.17.0'
+version = '1.17.0.1'
 
 version = version + '-ihr'
 
