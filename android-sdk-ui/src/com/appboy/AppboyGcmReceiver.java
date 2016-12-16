@@ -13,6 +13,7 @@ import com.appboy.configuration.AppboyConfigurationProvider;
 import com.appboy.push.AppboyNotificationActionUtils;
 import com.appboy.push.AppboyNotificationUtils;
 import com.appboy.support.AppboyLogger;
+import com.iheartradio.appboy.AppboyDependencies;
 
 public final class AppboyGcmReceiver extends BroadcastReceiver {
   private static final String TAG = String.format("%s.%s", Constants.APPBOY_LOG_TAG_PREFIX, AppboyGcmReceiver.class.getName());
@@ -32,17 +33,13 @@ public final class AppboyGcmReceiver extends BroadcastReceiver {
 
     String action = intent.getAction();
 
-//    boolean isPush = GCM_RECEIVE_INTENT_ACTION.equals(action) && AppboyNotificationUtils.isAppboyPushMessage(intent);
-//    if (isPush && AppboyDependencies.ihr.isOptedOut()) {
-//      AppboyDependencies.listener.onPushSquelched();
-//    } else if (GCM_REGISTRATION_INTENT_ACTION.equals(action)) {
-//      handleRegistrationEventIfEnabled(new AppboyConfigurationProvider(context), context, intent);
-//    } else if (isPush) {
-//      new HandleAppboyGcmMessageTask(context, intent);
-//    } else
-
-    if (GCM_REGISTRATION_INTENT_ACTION.equals(action)) {
+    boolean isPush = GCM_RECEIVE_INTENT_ACTION.equals(action) && AppboyNotificationUtils.isAppboyPushMessage(intent);
+    if (isPush && AppboyDependencies.ihr.isOptedOut()) {
+      AppboyDependencies.listener.onPushSquelched();
+    } else if (GCM_REGISTRATION_INTENT_ACTION.equals(action)) {
       handleRegistrationEventIfEnabled(new AppboyConfigurationProvider(context), context, intent);
+    } else if (isPush) {
+      new HandleAppboyGcmMessageTask(context, intent);
     } else if (GCM_RECEIVE_INTENT_ACTION.equals(action)) {
       handleAppboyGcmReceiveIntent(context, intent);
     } else if (Constants.APPBOY_CANCEL_NOTIFICATION_ACTION.equals(action)) {
